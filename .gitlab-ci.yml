@@ -40,3 +40,5 @@ test-job:
         echo "Grep tests FAILED: ${GREP_FAIL}"
         exit 1
       fi
+  dependencies:
+    - build-job

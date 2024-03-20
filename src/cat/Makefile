@@ -6,7 +6,7 @@ all: clean s21_cat
 s21_cat:
 	gcc $(CFLAGS) s21_cat.c -o s21_cat
 
-test: s21_cat
+test:
 	bash tests_cat.sh
 
 cpp:
