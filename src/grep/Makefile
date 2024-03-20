@@ -17,7 +17,7 @@ cpp:
 	cppcheck $(CPPFLAGS) s21_grep.h
 
 clang:
-	clang-format -n s21_grep.c s21_grep.h
+	clang-format -style=Google -n -Werror s21_grep.*
 
 clean:
 	rm -rf s21_grep

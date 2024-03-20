@@ -1,15 +1,23 @@
 stages:
+  - style
   - build
 
+style-job:
+  stage: style
+  tags:
+    - style
+  script:
+    - clang-format -style=Google -Werror -n src/cat/s21_cat.* src/grep/s21_grep.*
+
 build-job:
-    stage: build
-    tags: 
-      - build
-    script:
-      - (cd src/cat && make s21_cat)
-      - (cd src/grep && make s21_grep)
-    artifacts:
-      paths:
-        - src/cat/s21_cat
-        - src/grep/s21_grep
-      expire_in: 30 days
+  stage: build
+  tags: 
+    - build
+  script:
+    - (cd src/cat && make s21_cat)
+    - (cd src/grep && make s21_grep)
+  artifacts:
+    paths:
+      - src/cat/s21_cat
+      - src/grep/s21_grep
+    expire_in: 30 days

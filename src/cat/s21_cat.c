@@ -1,5 +1,6 @@
-#include "s21_cat.h"
-#include "string.h"
+#include "./s21_cat.h"
+
+#include <string.h>
 
 int main(int argc, char *argv[]) {
   Flag flags = CatReadFlags(argc, argv);

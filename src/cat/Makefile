@@ -14,7 +14,7 @@ cpp:
 	cppcheck $(CPPFLAGS) s21_cat.h
 
 clang:
-	clang-format -n s21_cat.c s21_cat.h
+	clang-format -style=Google -n -Werror s21_cat.*
 
 clean:
 	rm -rf s21_cat
