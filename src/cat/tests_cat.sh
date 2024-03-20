@@ -183,5 +183,5 @@ done
 #     done
 # done
 
-echo "${RED}FAIL: ${FAIL}${BASE}"
-echo "${GREEN}SUCCESS: ${SUCCESS}${BASE}"
+echo "FAIL: ${FAIL}"
+echo "SUCCESS: ${SUCCESS}"

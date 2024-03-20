@@ -1,6 +1,7 @@
 stages:
   - style
   - build
+  - test
 
 style-job:
   stage: style
@@ -21,3 +22,21 @@ build-job:
       - src/cat/s21_cat
       - src/grep/s21_grep
     expire_in: 30 days
+
+test-job:
+  stage: test
+  tags:
+    - test
+  script:
+    - |
+      (cd src/cat && make test) 2>/dev/null 1>cat_test.txt
+      CAT_FAIL=$(grep 'FAIL: ' cat_test.txt | awk -F ' ' '{print $2}')
+    - |
+      (cd src/grep && make test) 2>/dev/null 1>grep_test.txt
+      GREP_FAIL=$(grep 'FAIL: ' grep_test.txt | awk -F ' ' '{print $2}')
+    - |
+      if [[ ${CAT_FAIL} -ne 0 ]] || [[ ${GREP_FAIL} -ne 0 ]]; then
+        echo "Cat tests FAILED: ${CAT_FAIL}"
+        echo "Grep tests FAILED: ${GREP_FAIL}"
+        exit 1
+      fi

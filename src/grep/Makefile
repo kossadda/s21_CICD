@@ -6,7 +6,7 @@ all: clean s21_grep
 s21_grep:
 	gcc $(CFLAGS) s21_grep.c -o s21_grep
 
-test:
+test: s21_grep
 	bash tests.sh
 
 test_leaks:

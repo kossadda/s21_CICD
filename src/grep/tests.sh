@@ -234,12 +234,8 @@ done
 #     done
 # done
 printf "\n"
-printf "\x1b[31;1m"
-echo "FAILED: $FAIL"
-printf "\033[92m"
-echo "SUCCESSFUL: $SUCCESS"
-printf "\033[95m"
+echo "FAIL: $FAIL"
+echo "SUCCESS: $SUCCESS"
 echo "ALL: $COUNTER"
-printf "\x1b[0m"
 printf "\n"
 ##############################
