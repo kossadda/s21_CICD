@@ -2,6 +2,7 @@ stages:
   - style
   - build
   - test
+  - deploy
 
 style-job:
   stage: style
@@ -9,10 +10,12 @@ style-job:
     - style
   script:
     - clang-format -style=Google -Werror -n src/cat/s21_cat.* src/grep/s21_grep.*
+  only:
+    - develop
 
 build-job:
   stage: build
-  tags: 
+  tags:
     - build
   script:
     - (cd src/cat && make s21_cat)
@@ -22,6 +25,8 @@ build-job:
       - src/cat/s21_cat
       - src/grep/s21_grep
     expire_in: 30 days
+  only:
+    - develop
 
 test-job:
   stage: test
@@ -40,5 +45,24 @@ test-job:
         echo "Grep tests FAILED: ${GREP_FAIL}"
         exit 1
       fi
-  dependencies:
-    - build-job
+  only:
+    - develop
+
+deploy-job:
+  stage: deploy
+  tags:
+    - deploy
+  when: manual
+  script:
+    - eval $(ssh-agent -s)
+    - ssh-add < /home/gitlab-runner/.ssh/id_rsa
+    - |
+      if scp ./src/cat/s21_cat ./src/grep/s21_grep kossadda@192.10.10.2:~/ ; then
+        ssh kossadda@192.10.10.2 "sudo mv s21_cat s21_grep /usr/local/bin"
+        echo -e "\e[32mSuccesfully copy artifacts to /usr/local/bin\e[0m"
+      else
+        echo -e "\e[31mCAN'T COPY ARTIFACTS\e[0m"
+        exit 1
+      fi
+  only:
+    - develop
