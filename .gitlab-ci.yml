@@ -4,12 +4,20 @@ stages:
   - test
   - deploy
 
+.notify: &notify
+  - |
+    source /home/kossadda/config.conf
+    MESSAGE=$(if [[ "$CI_JOB_STATUS" =~ "failed" ]]; then echo "$CI_JOB_STAGE stage: FAIL"; else echo "$CI_JOB_STAGE stage: SUCCESS"; fi)
+    ssh "$REMOTE_USER"@"$REMOTE_SERVER" "curl -s -X POST $API_URL -d chat_id=$CHAT_ID -d text=\"$MESSAGE\"" > "/dev/null"
+
 style-job:
   stage: style
   tags:
     - style
   script:
     - clang-format -style=Google -Werror -n src/cat/s21_cat.* src/grep/s21_grep.*
+  after_script:
+    - *notify
   only:
     - develop
 
@@ -18,8 +26,9 @@ build-job:
   tags:
     - build
   script:
-    - (cd src/cat && make s21_cat)
-    - (cd src/grep && make s21_grep)
+    - cd src/cat && make s21_cat && cd ./../grep && make s21_grep
+  after_script:
+    - *notify
   artifacts:
     paths:
       - src/cat/s21_cat
@@ -33,18 +42,14 @@ test-job:
   tags:
     - test
   script:
+    - (cd src/cat && make test) 2>/dev/null 1>cat_test.txt
+    - (cd src/grep && make test) 2>/dev/null 1>grep_test.txt
     - |
-      (cd src/cat && make test) 2>/dev/null 1>cat_test.txt
-      CAT_FAIL=$(grep 'FAIL: ' cat_test.txt | awk -F ' ' '{print $2}')
-    - |
-      (cd src/grep && make test) 2>/dev/null 1>grep_test.txt
-      GREP_FAIL=$(grep 'FAIL: ' grep_test.txt | awk -F ' ' '{print $2}')
-    - |
-      if [[ ${CAT_FAIL} -ne 0 ]] || [[ ${GREP_FAIL} -ne 0 ]]; then
-        echo "Cat tests FAILED: ${CAT_FAIL}"
-        echo "Grep tests FAILED: ${GREP_FAIL}"
+      if ! grep -q "FAIL: 0" cat_test.txt || ! grep -q "FAIL: 0" grep_test.txt; then
         exit 1
       fi
+  after_script:
+    - *notify
   only:
     - develop
 
@@ -54,8 +59,6 @@ deploy-job:
     - deploy
   when: manual
   script:
-    - eval $(ssh-agent -s)
-    - ssh-add < /home/gitlab-runner/.ssh/id_rsa
     - |
       if scp ./src/cat/s21_cat ./src/grep/s21_grep kossadda@192.10.10.2:~/ ; then
         ssh kossadda@192.10.10.2 "sudo mv s21_cat s21_grep /usr/local/bin"
@@ -64,5 +67,7 @@ deploy-job:
         echo -e "\e[31mCAN'T COPY ARTIFACTS\e[0m"
         exit 1
       fi
+  after_script:
+    - *notify
   only:
     - develop
